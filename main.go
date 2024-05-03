@@ -15,6 +15,14 @@ func runServer(cCtx *cli.Context, config config.Config) error {
     if config.Type == "static" {
         return server.ServeStaticFiles(cCtx, config)
     }
+    if config.Type == "java" {
+        javaConfig := server.JavaConfig{}
+        err := config.ToConfigType(&javaConfig)
+        if err != nil {
+            return err
+        }
+        return server.JavaServerRun(javaConfig)
+    }
 
     return errors.New(fmt.Sprintf("Invalid server type: %s", config.Type))
 }
@@ -46,8 +54,15 @@ func main() {
                 Name:    "build",
                 Usage:   "Build the project to run after",
                 Action: func(cCtx *cli.Context) error {
-                    log.Println("Building project")
-                    return nil
+                    if loadedConfig.Type == "java" {
+                        config := server.JavaConfig{}
+                        err := loadedConfig.ToConfigType(&config)
+                        if err != nil {
+                            return err
+                        }
+                        return server.JavaServerBuild(config)
+                    }
+                    return errors.New(fmt.Sprintf("Build not supported for server type: %s", loadedConfig.Type))
                 },
             },
         },

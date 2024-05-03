@@ -19,6 +19,15 @@ type Config struct {
     Type    string `json:"type"`
     Dir     string `json:"dir"`
     Cors    CorsConfig `json:"cors"`
+    Config  map[string]interface{} `json:"config"`
+}
+
+func (c Config) ToConfigType(output interface{}) error  {
+    jsonBody, err := json.Marshal(c.Config)
+    if err != nil {
+        return err
+    }
+    return json.Unmarshal(jsonBody, output)
 }
 
 func LoadConfig(configPath string) (Config, error) {
