@@ -2,7 +2,10 @@ module github.com/orlandokj/just
 
 go 1.22.1
 
-require github.com/urfave/cli/v2 v2.27.1
+require (
+	github.com/a-h/templ v0.2.663
+	github.com/urfave/cli/v2 v2.27.1
+)
 
 require (
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect

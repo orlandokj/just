@@ -1,8 +1,7 @@
 package server
 
 import (
-	"bufio"
-	"log"
+	"fmt"
 	"os/exec"
 	"strings"
 
@@ -13,72 +12,37 @@ type JavaConfig struct {
     JavaHome string `json:"javaHome"`
     JavaOpts string `json:"javaOpts"`
     JarFile string `json:"jarFile"`
+    workDir string
 }
+
 
 type JavaServer struct {
     config JavaConfig
+    logIngestion LogFunc
 }
 
-
-func (js JavaServer) Build() error {
-    // build the java server
+func (js JavaServer) Build() (ServerProcess, error) {
     cmd := exec.Command("mvn", "package", "-DskipTests")
+    cmd.Path = js.config.workDir
     cmd.Env = append(cmd.Env, "JAVA_HOME=" + js.config.JavaHome)
-    stdout, err := cmd.StdoutPipe()
-    cmd.Stderr = cmd.Stdout
-    if err != nil {
-        return err
-    }
-
-    reader := bufio.NewReader(stdout)
-    err = cmd.Start()
-    if err != nil {
-        return err
-    }
-
-    for {
-        line, err := reader.ReadString('\n')
-        if err != nil {
-            break
-        }
-        print(line)
-    }
-    return cmd.Wait()
+    return RunCmd(cmd, js.logIngestion)
 }
 
-func (js JavaServer) Run() error {
-    // run the java server
+func (js JavaServer) Run() (ServerProcess, error) {
     cmd := exec.Command("java")
     cmd.Path = js.config.JavaHome + "/bin/java"
+    cmd.Dir = js.config.workDir
     arguments := strings.Split(js.config.JavaOpts, " ")
     cmd.Args = append(cmd.Args, arguments...)
     cmd.Args = append(cmd.Args, "-jar", js.config.JarFile)
-    log.Printf("Running java server with command %s", cmd.String())
-    cmd.Env = append(cmd.Env, "JAVA_HOME=" + js.config.JavaHome)
-    stdout, err := cmd.StdoutPipe()
-    cmd.Stderr = cmd.Stdout
-    if err != nil {
-        return err
-    }
-
-    reader := bufio.NewReader(stdout)
-    err = cmd.Start()
-    if err != nil {
-        return err
-    }
-
-    for {
-        line, err := reader.ReadString('\n')
-        if err != nil {
-            break
-        }
-        print(line)
-    }
-    return cmd.Wait()
+    js.logIngestion(fmt.Sprintf("Running java server with command %s", cmd.String()))
+    return RunCmd(cmd, js.logIngestion)
 }
 
-func CreateJavaServer(config config.Config) (Server, error) {
-    javaConfig := JavaConfig{}
+func CreateJavaServer(config config.Config, logIngestion LogFunc) (Server, error) {
+    javaConfig := JavaConfig{
+        workDir: config.WorkDir,
+    }
     err := config.ToConfigType(&javaConfig)
     if err != nil {
         return nil, err
@@ -86,5 +50,7 @@ func CreateJavaServer(config config.Config) (Server, error) {
 
     return JavaServer{
         config: javaConfig,
+        logIngestion: logIngestion,
     }, nil
 }
+

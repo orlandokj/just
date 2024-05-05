@@ -1,0 +1,41 @@
+package templates
+
+import "fmt"
+
+templ ApplicationLogs(appName string) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+            <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+            <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/sse.js"></script>
+			<script src="https://cdn.tailwindcss.com"></script>
+			<title>Just logs</title>
+            <script type="text/javascript">
+                var interval = undefined
+                function toggleAutoScroll(element) {
+                    if (interval === undefined) {
+                        element.innerText = "Disable auto scroll";
+                        interval = setInterval(() => {
+                                document.getElementById("scroll-to-bottom").scrollIntoView();
+                                }, 1000);
+                    } else {
+                        element.innerText = "Enable auto scroll";
+                        clearInterval(interval);
+                        interval = undefined;
+                    }
+                }
+            </script>
+		</head>
+		<body class="bg-slate-950 p-2">
+            <div class="text-slate-400" hx-ext="sse" id="logs" sse-connect={fmt.Sprintf("/application/%s/logs", appName)} sse-swap="message" hx-swap="beforeend">
+            </div>
+            <div class="fixed bottom-2 right-2">
+                <button id="auto-scroll-button" onclick="toggleAutoScroll(this)" class="bg-slate-800 text-slate-400 px-2 py-1 rounded">Enable auto scroll</button>
+            </div>
+            <div id="scroll-to-bottom"></div>
+        </body>
+    </html>
+}
