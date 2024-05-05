@@ -5,20 +5,9 @@ import (
 	"os"
 )
 
-type CorsConfig struct {
-    DynamicOrigin bool `json:"dynamicOrigin"`
-    DefaultOrigin string `json:"defaultOrigin"`
-    Headers string `json:"headers"`
-    Methods string `json:"methods"`
-    AllowCredentials bool `json:"allowCredentials"`
-}
-
 type Config struct {
     Name    string `json:"name"`
-    Port    int    `json:"port"`
     Type    string `json:"type"`
-    Dir     string `json:"dir"`
-    Cors    CorsConfig `json:"cors"`
     Config  map[string]interface{} `json:"config"`
 }
 
@@ -37,17 +26,7 @@ func LoadConfig(configPath string) (Config, error) {
     }
 
     file, err := os.Open(filePath)
-    config := Config{
-        Dir: "./dist",
-        Cors: CorsConfig{
-            DynamicOrigin: true,
-            DefaultOrigin: "http://localhost:9000",
-            Headers: "x-dispositivo, x-requested-with",
-            Methods: "*",
-            AllowCredentials: true,
-        },
-
-    }
+    config := Config{}
 
     if err != nil {
         return config, err

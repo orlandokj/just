@@ -1,8 +1,6 @@
 package main
 
 import (
-	"errors"
-	"fmt"
 	"log"
 	"os"
 
@@ -11,20 +9,24 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func runServer(cCtx *cli.Context, config config.Config) error {
-    if config.Type == "static" {
-        return server.ServeStaticFiles(cCtx, config)
-    }
-    if config.Type == "java" {
-        javaConfig := server.JavaConfig{}
-        err := config.ToConfigType(&javaConfig)
-        if err != nil {
-            return err
-        }
-        return server.JavaServerRun(javaConfig)
-    }
+func getServer(config config.Config) (server.Server, error) {
+    return server.CreateServer(config)
+}
 
-    return errors.New(fmt.Sprintf("Invalid server type: %s", config.Type))
+func runServer(config config.Config) error {
+    s, err := getServer(config)
+    if err != nil {
+        return err
+    }
+    return s.Run()
+}
+
+func buildServer(config config.Config) error {
+    s, err := getServer(config)
+    if err != nil {
+        return err
+    }
+    return s.Build()
 }
 
 func main() {
@@ -47,22 +49,29 @@ func main() {
                 Name:    "run",
                 Usage:   "Run the server",
                 Action: func(cCtx *cli.Context) error {
-                    return runServer(cCtx, loadedConfig)
+                    return runServer(loadedConfig)
                 },
             },
             {
                 Name:    "build",
                 Usage:   "Build the project to run after",
                 Action: func(cCtx *cli.Context) error {
-                    if loadedConfig.Type == "java" {
-                        config := server.JavaConfig{}
-                        err := loadedConfig.ToConfigType(&config)
-                        if err != nil {
-                            return err
-                        }
-                        return server.JavaServerBuild(config)
+                    return buildServer(loadedConfig)
+                },
+            },
+            {
+                Name:    "build-run",
+                Usage:   "Build the project and run after the build completed",
+                Action: func(cCtx *cli.Context) error {
+                    server, err := getServer(loadedConfig)
+                    if err != nil {
+                        return err
                     }
-                    return errors.New(fmt.Sprintf("Build not supported for server type: %s", loadedConfig.Type))
+                    err = server.Build()
+                    if err != nil {
+                        return err
+                    }
+                    return server.Run()
                 },
             },
         },
@@ -74,7 +83,7 @@ func main() {
 
         },
 		Action: func(cCtx *cli.Context) error {
-            return runServer(cCtx, loadedConfig)
+            return runServer(loadedConfig)
 		},
 	}
 

@@ -5,6 +5,8 @@ import (
 	"log"
 	"os/exec"
 	"strings"
+
+	"github.com/orlandokj/just/config"
 )
 
 type JavaConfig struct {
@@ -13,10 +15,15 @@ type JavaConfig struct {
     JarFile string `json:"jarFile"`
 }
 
-func JavaServerBuild(config JavaConfig) error {
+type JavaServer struct {
+    config JavaConfig
+}
+
+
+func (js JavaServer) Build() error {
     // build the java server
     cmd := exec.Command("mvn", "package", "-DskipTests")
-    cmd.Env = append(cmd.Env, "JAVA_HOME=" + config.JavaHome)
+    cmd.Env = append(cmd.Env, "JAVA_HOME=" + js.config.JavaHome)
     stdout, err := cmd.StdoutPipe()
     cmd.Stderr = cmd.Stdout
     if err != nil {
@@ -39,15 +46,15 @@ func JavaServerBuild(config JavaConfig) error {
     return cmd.Wait()
 }
 
-func JavaServerRun(config JavaConfig) error {
+func (js JavaServer) Run() error {
     // run the java server
     cmd := exec.Command("java")
-    cmd.Path = config.JavaHome + "/bin/java"
-    arguments := strings.Split(config.JavaOpts, " ")
+    cmd.Path = js.config.JavaHome + "/bin/java"
+    arguments := strings.Split(js.config.JavaOpts, " ")
     cmd.Args = append(cmd.Args, arguments...)
-    cmd.Args = append(cmd.Args, "-jar", config.JarFile)
+    cmd.Args = append(cmd.Args, "-jar", js.config.JarFile)
     log.Printf("Running java server with command %s", cmd.String())
-    cmd.Env = append(cmd.Env, "JAVA_HOME=" + config.JavaHome)
+    cmd.Env = append(cmd.Env, "JAVA_HOME=" + js.config.JavaHome)
     stdout, err := cmd.StdoutPipe()
     cmd.Stderr = cmd.Stdout
     if err != nil {
@@ -68,4 +75,16 @@ func JavaServerRun(config JavaConfig) error {
         print(line)
     }
     return cmd.Wait()
+}
+
+func CreateJavaServer(config config.Config) (Server, error) {
+    javaConfig := JavaConfig{}
+    err := config.ToConfigType(&javaConfig)
+    if err != nil {
+        return nil, err
+    }
+
+    return JavaServer{
+        config: javaConfig,
+    }, nil
 }
