@@ -1,0 +1,175 @@
+package templates
+
+script onSelectType() {
+    const select = document.getElementById('select-app-type');
+
+    select.addEventListener('change', (event) => {
+        let selectedOption = event.target.value
+        document.querySelectorAll('.config').forEach((config) => {
+            config.classList.add('hidden');
+        });
+        if (selectedOption) {
+            document.getElementById(selectedOption + '-config').classList.remove('hidden');
+        }
+    });
+}
+
+templ StaticConfig() {
+	<div id="static-config" class="config hidden grid gap-2">
+		<div class="grid gap-2">
+			<label
+				class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+				for="static-dir"
+			>
+				Static Dir
+			</label>
+			<input
+				class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+				id="static-dir"
+				placeholder="Enter your static directory"
+			/>
+		</div>
+		<div class="grid gap-2">
+			<label
+				class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+				for="port"
+			>
+				Port
+			</label>
+			<input
+				class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+				id="port"
+				type="number"
+				min="1025"
+				max="65535"
+				placeholder="Enter your port"
+			/>
+		</div>
+	</div>
+}
+
+templ JavaConfig() {
+	<div id="java-config" class="config hidden grid gap-2">
+		<div class="grid gap-2">
+			<label
+				class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+				for="java-home"
+			>
+				Java Home
+			</label>
+			<input
+				class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+				id="java-home"
+				name="config.javaHome"
+				placeholder="Enter your Java home"
+			/>
+		</div>
+		<div class="grid gap-2">
+			<label
+				class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+				for="java-opts"
+			>
+				Java OPTS
+			</label>
+			<input
+				class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+				id="java-opts"
+				name="config.javaOpts"
+				placeholder="Enter your Java Options"
+			/>
+		</div>
+		<div class="grid gap-2">
+			<label
+				class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+				for="jar-file"
+			>
+				Jar File
+			</label>
+			<input
+				class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+				id="jar-file"
+				placeholder="Enter your jar file location, relative to the working dir"
+				name="config.jarFile"
+			/>
+		</div>
+	</div>
+}
+
+templ NewApplication() {
+	<!--
+// v0 by Vercel.
+// https://v0.dev/t/D6AG3V5Ofw1
+-->
+	<div class="p-4">
+		@onSelectType()
+		<div class="mx-auto max-w-lg space-y-6 p-4 md:p-0">
+			<form
+				style="width: 600px"
+				class="rounded-lg border bg-card text-card-foreground shadow-sm"
+				hx-post="/new-application"
+				hx-ext="custom-json-enc"
+				hx-target="#route-target"
+			>
+				<div class="p-6 space-y-4">
+					<div class="grid gap-2">
+						<label
+							class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+							for="name"
+						>
+							Name
+						</label>
+						<input
+							class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+							id="name"
+							name="name"
+							placeholder="Enter your application name"
+						/>
+					</div>
+					<div class="grid gap-2">
+						<label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" for="workDir">Working Dir</label>
+						<input
+							class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+							id="workDir"
+							name="workDir"
+							placeholder="Enter your working directory"
+						/>
+					</div>
+					<div class="grid gap-2">
+						<label
+							class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+							for="type"
+						>
+							Application Type
+						</label>
+						<select
+							aria-hidden="true"
+							tabindex="-1"
+							class="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+							style="background-color: transparent; appearance: none;"
+							name="type"
+							id="select-app-type"
+						>
+							<option value="">
+								Select application type
+							</option>
+							<option value="java">Java</option>
+							<option value="static">Static</option>
+						</select>
+					</div>
+                    <div name="config">
+                        @JavaConfig()
+                        @StaticConfig()
+                    </div>
+				</div>
+				<div class="flex items-center p-6 justify-end">
+					<button
+						class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+						type="submit"
+					>
+						Submit
+					</button>
+				</div>
+			</form>
+		</div>
+	</div>
+}

@@ -6,8 +6,9 @@ import (
 )
 
 type Config struct {
-    Name    string `json:"name"`
     Type    string `json:"type"`
+    Name    string `json:"name"`
+    WorkDir string `json:"workDir"`
     Config  map[string]interface{} `json:"config"`
 }
 

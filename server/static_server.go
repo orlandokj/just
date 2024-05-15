@@ -49,13 +49,14 @@ type StaticServerConfig struct {
 
 type StaticServer struct {
     config StaticServerConfig
+    logFunc LogFunc
 }
 
-func (ss StaticServer) Build() error {
-    return errors.New("Static server does not support build yet")
+func (ss StaticServer) Build() (ServerProcess, error) {
+    return nil, errors.New("Static server does not support build yet")
 }
 
-func (ss StaticServer) Run() error {
+func (ss StaticServer) Run() (ServerProcess, error) {
     serveDir := ss.config.Dir
     if serveDir == "" {
         serveDir = "./dist"
@@ -70,13 +71,45 @@ func (ss StaticServer) Run() error {
             AllowCredentials: true,
         }
     }
-    http.Handle("/", enableCors(fs, ss.config.Cors))
+    mux := http.NewServeMux()
+    mux.Handle("/", enableCors(fs, ss.config.Cors))
     log.Printf("Starting to serve files from dir %s on port %d", ss.config.Dir, ss.config.Port)
-    err := http.ListenAndServe(fmt.Sprintf(":%d", ss.config.Port), nil)
+    runningServer := RunningServer{
+        server: &http.Server{
+            Addr: fmt.Sprintf(":%d", ss.config.Port),
+            Handler: mux,
+        },
+    }
+    go func() {
+        runningServer.server.ListenAndServe()
+    }()
+    return runningServer, nil
+}
+
+type RunningServer struct {
+    server *http.Server
+    stopped bool
+}
+
+func (m RunningServer) Stop() error {
+    if m.stopped == true {
+        return nil
+    }
+
+    err := m.server.Close()
+    m.stopped = true
     return err
 }
 
-func CreateStaticServer(config config.Config) (Server, error) {
+func (m RunningServer) MemoryUsage() int {
+    return -1
+}
+
+func (m RunningServer) CPUUsage() int {
+    return -1
+}
+
+func CreateStaticServer(config config.Config, logFunc LogFunc) (Server, error) {
     staticConfig := StaticServerConfig{}
     err := config.ToConfigType(&staticConfig)
     if err != nil {
@@ -85,5 +118,6 @@ func CreateStaticServer(config config.Config) (Server, error) {
     
     return StaticServer{
         config: staticConfig,
+        logFunc: logFunc,
     }, nil
 }

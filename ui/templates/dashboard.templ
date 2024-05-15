@@ -1,0 +1,126 @@
+package templates
+
+import "fmt"
+import "github.com/orlandokj/just/application"
+
+css progress(percent int) {
+	transform: { templ.SafeCSSProperty(fmt.Sprintf("translateX(-%d%%)", 100-percent)) };
+}
+
+templ ApplicationTable() {
+	<div class="border shadow-sm rounded-lg">
+		<div class="relative w-full overflow-auto">
+			<table class="w-full caption-bottom text-sm">
+				<thead class="[&_tr]:border-b">
+					<tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+						<th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">
+							Name
+						</th>
+						<th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 hidden md:table-cell">
+							Status
+						</th>
+						<th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 hidden md:table-cell">
+							CPU
+						</th>
+						<th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 hidden md:table-cell">
+							Memory
+						</th>
+						<th class="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">
+							Actions
+						</th>
+					</tr>
+				</thead>
+				<tbody class="[&_tr:last-child]:border-0">
+					for _, app := range application.GetApplications() {
+						@Application(app)
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+}
+
+templ Application(app *application.Application) {
+	<tr class="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
+		<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 font-medium">{ app.Name }</td>
+		<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 hidden md:table-cell">
+			<div class="inline-flex w-fit items-center whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+				{ app.Status }
+			</div>
+		</td>
+		<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 hidden md:table-cell">
+			<div
+				aria-valuemax="100"
+				aria-valuemin="0"
+				role="progressbar"
+				data-state="indeterminate"
+				data-max="100"
+				class={ "relative h-2 w-full overflow-hidden rounded-full bg-primary/20", templ.KV("hidden", app.CPUUsage() <= 0) }
+			>
+				<div
+					data-state="indeterminate"
+					data-max="100"
+					class={ "h-full w-full flex-1 bg-primary transition-all", progress(app.CPUUsage())}
+				></div>
+			</div>
+		</td>
+		<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0 hidden md:table-cell">
+			<div
+				aria-valuemax="100"
+				aria-valuemin="0"
+				role="progressbar"
+				data-state="indeterminate"
+				data-max="100"
+				class={ "relative h-2 w-full overflow-hidden rounded-full bg-primary/20", templ.KV("hidden", app.MemoryUsage() <= 0) }
+			>
+				<div
+					data-state="indeterminate"
+					data-max="100"
+					class={ "h-full w-full flex-1 bg-primary transition-all", progress(app.MemoryUsage())}
+				></div>
+			</div>
+		</td>
+		<td class="p-4 align-middle [&:has([role=checkbox])]:pr-0">
+        <a target="_blank" href={templ.SafeURL(fmt.Sprintf("/application/%s/logs", app.Name))}>
+			<button 
+                class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3 mr-2"
+
+                >
+				View Logs
+			</button>
+            </a>
+			<button 
+                class={
+                    "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3 mr-2", 
+                    templ.KV("hidden", app.Status == "Running")
+                }
+                hx-post={fmt.Sprintf("/application/%s/start", app.Name)}
+                hx-target="#route-target"
+                >
+				Start
+			</button>
+			<button 
+                class={
+                    "inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3 mr-2", 
+                    templ.KV("hidden", app.Status != "Running")
+                }
+                hx-post={fmt.Sprintf("/application/%s/stop", app.Name)}
+                hx-target="#route-target"
+                >
+				Stop
+			</button>
+		</td>
+	</tr>
+}
+
+templ Dashboard() {
+	<main class="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6">
+		<div class="flex items-center">
+			<h2 class="font-semibold text-lg md:text-2xl">Applications</h2>
+			<button hx-get="/new-application" hx-target="#route-target" class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 rounded-md px-3 ml-auto">
+				Add Application
+			</button>
+		</div>
+		@ApplicationTable()
+	</main>
+}
