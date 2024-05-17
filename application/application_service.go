@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"errors"
 	"log"
+	"sort"
 
 	"github.com/orlandokj/just/config"
 	"github.com/orlandokj/just/server"
@@ -74,11 +75,16 @@ func (a *Application) stop() error {
     }
 
     a.Status = "Stopped"
+    a.logs.Init()
 
     return nil
 }
 
 func NewApplication(config config.Config) error {
+    if config.Name == "" {
+        return errors.New("Name is required")
+    }
+
     app := Application{
         Name: config.Name,
         Config: config,
@@ -91,6 +97,16 @@ func NewApplication(config config.Config) error {
     }
     applications[config.Name] = &app
     return nil
+}
+
+func ModifyApplication(config config.Config) error {
+    app, ok := applications[config.Name]
+    if !ok {
+        return errors.New("Application not found")
+    }
+
+    app.Config = config
+    return EditApplication(*app)
 }
 
 func RunApplication(name string) error {
@@ -120,8 +136,15 @@ func loadApplications() {
     } 
 }
 
-func GetApplications() map[string]*Application {
-    return applications
+func GetApplications() []*Application {
+    var apps []*Application
+    for _, app := range applications {
+        apps = append(apps, app)
+    }
+    sort.Slice(apps, func(i, j int) bool {
+        return apps[i].Name < apps[j].Name
+    })
+    return apps
 }
 
 func DeleteApplication(name string) error {
@@ -161,6 +184,15 @@ func StopWatching(name string) {
     }
 
     app.logChan = nil
+}
+
+func GetApplication(name string) *Application {
+    app, ok := applications[name]
+    if !ok {
+        return nil
+    }
+
+    return app
 }
 
 func init() {

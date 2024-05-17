@@ -42,6 +42,7 @@ func RunCmd(cmd *exec.Cmd, logFunc LogFunc) (ServerProcess, error) {
 
     err = cmd.Start()
     if err != nil {
+        logFunc(err.Error())
         return nil, err
     }
 

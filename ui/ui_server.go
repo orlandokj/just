@@ -3,6 +3,7 @@ package ui
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -41,7 +42,7 @@ func RunUI() error {
 
     mux.HandleFunc("/new-application", createComponentHandleFunc(func(r *http.Request) (templ.Component, error) {
         if r.Method == "GET" {
-            return templates.NewApplication(), nil
+            return templates.ApplicationForm(application.Application{}), nil
         }
 
         if r.Method == "POST" {
@@ -52,7 +53,36 @@ func RunUI() error {
                 log.Printf("Error decoding new application: %v", err)
                 return nil, err
             }
-            application.NewApplication(appConfig)
+            err = application.NewApplication(appConfig)
+            if err != nil {
+                return nil, err
+            }
+            return templates.Dashboard(), nil
+        }
+        return nil, nil
+    }))
+
+    mux.HandleFunc("/edit-application/{name}", createComponentHandleFunc(func(r *http.Request) (templ.Component, error) {
+        if r.Method == "GET" {
+            app := application.GetApplication(r.PathValue("name"))
+            if app == nil {
+                return nil, errors.New("Application not found")
+            }
+            return templates.ApplicationForm(*app), nil
+        }
+
+        if r.Method == "POST" {
+            appConfig := config.Config{} 
+            err := json.NewDecoder(r.Body).Decode(&appConfig)
+            log.Println(appConfig)
+            if err != nil {
+                log.Printf("Error decoding new application: %v", err)
+                return nil, err
+            }
+            err = application.ModifyApplication(appConfig)
+            if err != nil {
+                return nil, err
+            }
             return templates.Dashboard(), nil
         }
         return nil, nil

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/orlandokj/just/config"
 )
@@ -43,13 +44,25 @@ type CorsConfig struct {
 
 type StaticServerConfig struct {
     Dir string `json:"dir"`
-    Port int `json:"port"`
+    Port string `json:"port"`
     Cors CorsConfig `json:"cors"`
+}
+
+func (ssc StaticServerConfig) GetPort() (int, error) {
+    if ssc.Port == "" {
+        return -1, errors.New("Port is required")
+    }
+    port, err := strconv.Atoi(ssc.Port)
+    if err != nil {
+        return -1, err
+    }
+    return port, nil
 }
 
 type StaticServer struct {
     config StaticServerConfig
     logFunc LogFunc
+    workDir string
 }
 
 func (ss StaticServer) Build() (ServerProcess, error) {
@@ -61,7 +74,7 @@ func (ss StaticServer) Run() (ServerProcess, error) {
     if serveDir == "" {
         serveDir = "./dist"
     }
-    fs := http.FileServer(http.Dir(serveDir))
+    fs := http.FileServer(http.Dir(ss.workDir + "/" + serveDir))
     if ss.config.Cors == (CorsConfig{}) {
        ss.config.Cors = CorsConfig{
             DynamicOrigin: true,
@@ -71,12 +84,16 @@ func (ss StaticServer) Run() (ServerProcess, error) {
             AllowCredentials: true,
         }
     }
+    port, err := ss.config.GetPort()
+    if err != nil {
+        return nil, err
+    }
     mux := http.NewServeMux()
     mux.Handle("/", enableCors(fs, ss.config.Cors))
-    log.Printf("Starting to serve files from dir %s on port %d", ss.config.Dir, ss.config.Port)
+    log.Printf("Starting to serve files from dir %s on port %d", ss.config.Dir, port)
     runningServer := RunningServer{
         server: &http.Server{
-            Addr: fmt.Sprintf(":%d", ss.config.Port),
+            Addr: fmt.Sprintf(":%d", port),
             Handler: mux,
         },
     }
@@ -119,5 +136,6 @@ func CreateStaticServer(config config.Config, logFunc LogFunc) (Server, error) {
     return StaticServer{
         config: staticConfig,
         logFunc: logFunc,
+        workDir: config.WorkDir,
     }, nil
 }

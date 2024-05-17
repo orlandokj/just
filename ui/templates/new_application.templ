@@ -1,5 +1,8 @@
 package templates
 
+import "github.com/orlandokj/just/application"
+import "github.com/orlandokj/just/config"
+
 script onSelectType() {
     const select = document.getElementById('select-app-type');
 
@@ -14,7 +17,7 @@ script onSelectType() {
     });
 }
 
-templ StaticConfig() {
+templ StaticConfig(config config.Config) {
 	<div id="static-config" class="config hidden grid gap-2">
 		<div class="grid gap-2">
 			<label
@@ -27,6 +30,8 @@ templ StaticConfig() {
 				class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 				id="static-dir"
 				placeholder="Enter your static directory"
+                value={config.GetAsString("dir")}
+                name="config.dir"
 			/>
 		</div>
 		<div class="grid gap-2">
@@ -43,12 +48,14 @@ templ StaticConfig() {
 				min="1025"
 				max="65535"
 				placeholder="Enter your port"
+                value={config.GetAsString("port")}
+                name="config.port"
 			/>
 		</div>
 	</div>
 }
 
-templ JavaConfig() {
+templ JavaConfig(config config.Config) {
 	<div id="java-config" class="config hidden grid gap-2">
 		<div class="grid gap-2">
 			<label
@@ -62,6 +69,7 @@ templ JavaConfig() {
 				id="java-home"
 				name="config.javaHome"
 				placeholder="Enter your Java home"
+                value={config.GetAsString("javaHome")}
 			/>
 		</div>
 		<div class="grid gap-2">
@@ -76,6 +84,7 @@ templ JavaConfig() {
 				id="java-opts"
 				name="config.javaOpts"
 				placeholder="Enter your Java Options"
+                value={config.GetAsString("javaOpts")}
 			/>
 		</div>
 		<div class="grid gap-2">
@@ -90,12 +99,13 @@ templ JavaConfig() {
 				id="jar-file"
 				placeholder="Enter your jar file location, relative to the working dir"
 				name="config.jarFile"
+                value={config.GetAsString("jarFile")}
 			/>
 		</div>
 	</div>
 }
 
-templ NewApplication() {
+templ ApplicationForm(app application.Application) {
 	<!--
 // v0 by Vercel.
 // https://v0.dev/t/D6AG3V5Ofw1
@@ -123,6 +133,7 @@ templ NewApplication() {
 							id="name"
 							name="name"
 							placeholder="Enter your application name"
+                            value={app.Name}
 						/>
 					</div>
 					<div class="grid gap-2">
@@ -132,6 +143,7 @@ templ NewApplication() {
 							id="workDir"
 							name="workDir"
 							placeholder="Enter your working directory"
+                            value={app.Config.WorkDir}
 						/>
 					</div>
 					<div class="grid gap-2">
@@ -148,6 +160,7 @@ templ NewApplication() {
 							style="background-color: transparent; appearance: none;"
 							name="type"
 							id="select-app-type"
+                            value={app.Config.Type}
 						>
 							<option value="">
 								Select application type
@@ -157,8 +170,8 @@ templ NewApplication() {
 						</select>
 					</div>
                     <div name="config">
-                        @JavaConfig()
-                        @StaticConfig()
+                        @JavaConfig(app.Config)
+                        @StaticConfig(app.Config)
                     </div>
 				</div>
 				<div class="flex items-center p-6 justify-end">

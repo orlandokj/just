@@ -31,6 +31,23 @@ func AddApplication(application Application) error {
     return nil
 }
 
+func EditApplication(application Application) error {
+    applications := getApplications()
+    for i, app := range applications {
+        if app.Name == application.Name {
+            applications[i] = application
+            break
+        }
+    }
+
+    err := saveApplicationsFile(applications)
+    if err != nil {
+        return err
+    }
+
+    return nil
+}
+
 func RemoveApplication(application Application) error {
     applications := getApplications()
     for i, app := range applications {

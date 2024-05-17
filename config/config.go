@@ -12,6 +12,18 @@ type Config struct {
     Config  map[string]interface{} `json:"config"`
 }
 
+func (c Config) GetAsString(key string) string {
+    if c.Config == nil {
+        return ""
+    }
+
+    value := c.Config[key]
+    if value == nil {
+        return ""
+    }
+    return value.(string)
+}
+
 func (c Config) ToConfigType(output interface{}) error  {
     jsonBody, err := json.Marshal(c.Config)
     if err != nil {
