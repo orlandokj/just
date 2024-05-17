@@ -21,3 +21,5 @@
 go.work
 just
 ui/templates/*.txt
+ui/templates/*.go
+
