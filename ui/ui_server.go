@@ -11,7 +11,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/orlandokj/just/application"
-	"github.com/orlandokj/just/config"
 	"github.com/orlandokj/just/ui/templates"
 )
 
@@ -46,7 +45,7 @@ func RunUI() error {
         }
 
         if r.Method == "POST" {
-            appConfig := config.Config{} 
+            appConfig := application.ApplicationConfig{} 
             err := json.NewDecoder(r.Body).Decode(&appConfig)
             log.Println(appConfig)
             if err != nil {
@@ -72,7 +71,7 @@ func RunUI() error {
         }
 
         if r.Method == "POST" {
-            appConfig := config.Config{} 
+            appConfig := application.ApplicationConfig{} 
             err := json.NewDecoder(r.Body).Decode(&appConfig)
             log.Println(appConfig)
             if err != nil {

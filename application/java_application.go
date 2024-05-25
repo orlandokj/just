@@ -1,11 +1,9 @@
-package server
+package application
 
 import (
 	"fmt"
 	"os/exec"
 	"strings"
-
-	"github.com/orlandokj/just/config"
 )
 
 type JavaConfig struct {
@@ -16,30 +14,30 @@ type JavaConfig struct {
 }
 
 
-type JavaServer struct {
+type JavaApplication struct {
     config JavaConfig
     logIngestion LogFunc
 }
 
-func (js JavaServer) Build() (ServerProcess, error) {
+func (js JavaApplication) Build() (RunningProcess, error) {
     cmd := exec.Command("mvn", "package", "-DskipTests")
     cmd.Path = js.config.workDir
     cmd.Env = append(cmd.Env, "JAVA_HOME=" + js.config.JavaHome)
     return RunCmd(cmd, js.logIngestion)
 }
 
-func (js JavaServer) Run() (ServerProcess, error) {
+func (js JavaApplication) Run() (RunningProcess, error) {
     cmd := exec.Command("java")
     cmd.Path = js.config.JavaHome + "/bin/java"
     cmd.Dir = js.config.workDir
     arguments := strings.Split(js.config.JavaOpts, " ")
     cmd.Args = append(cmd.Args, arguments...)
     cmd.Args = append(cmd.Args, "-jar", js.config.JarFile)
-    js.logIngestion(fmt.Sprintf("Running java server with command %s", cmd.String()))
+    js.logIngestion(fmt.Sprintf("Running java application with command %s", cmd.String()))
     return RunCmd(cmd, js.logIngestion)
 }
 
-func CreateJavaServer(config config.Config, logIngestion LogFunc) (Server, error) {
+func CreateJavaApplication(config ApplicationConfig, logIngestion LogFunc) (ApplicationHandler, error) {
     javaConfig := JavaConfig{
         workDir: config.WorkDir,
     }
@@ -48,7 +46,7 @@ func CreateJavaServer(config config.Config, logIngestion LogFunc) (Server, error
         return nil, err
     }
 
-    return JavaServer{
+    return JavaApplication{
         config: javaConfig,
         logIngestion: logIngestion,
     }, nil

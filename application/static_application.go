@@ -1,4 +1,4 @@
-package server
+package application
 
 import (
 	"errors"
@@ -6,8 +6,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-
-	"github.com/orlandokj/just/config"
 )
 
 
@@ -65,11 +63,11 @@ type StaticServer struct {
     workDir string
 }
 
-func (ss StaticServer) Build() (ServerProcess, error) {
+func (ss StaticServer) Build() (RunningProcess, error) {
     return nil, errors.New("Static server does not support build yet")
 }
 
-func (ss StaticServer) Run() (ServerProcess, error) {
+func (ss StaticServer) Run() (RunningProcess, error) {
     serveDir := ss.config.Dir
     if serveDir == "" {
         serveDir = "./dist"
@@ -126,7 +124,7 @@ func (m RunningServer) CPUUsage() int {
     return -1
 }
 
-func CreateStaticServer(config config.Config, logFunc LogFunc) (Server, error) {
+func CreateStaticApplication(config ApplicationConfig, logFunc LogFunc) (ApplicationHandler, error) {
     staticConfig := StaticServerConfig{}
     err := config.ToConfigType(&staticConfig)
     if err != nil {

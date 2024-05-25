@@ -1,9 +1,10 @@
-package server
+package application
 
 import (
 	"bufio"
 	"os"
 	"os/exec"
+	"syscall"
 )
 
 type RunningCommand struct {
@@ -24,16 +25,17 @@ func (rc RunningCommand) Stop() error {
 }
 
 func (rc RunningCommand) MemoryUsage() int {
-    // TODO Como buscar a memória usada por um processo?
+    // TODO How to get memory usage of a process?
     return -1
 }
 
 func (rc RunningCommand) CPUUsage() int {
-    // TODO Como buscar a CPU usada por um processo?
+    // TODO How to get CPU usage of a process?
     return -1
 }
 
-func RunCmd(cmd *exec.Cmd, logFunc LogFunc) (ServerProcess, error) {
+func RunCmd(cmd *exec.Cmd, logFunc LogFunc) (RunningProcess, error) {
+    cmd.SysProcAttr = &syscall.SysProcAttr{Pdeathsig: syscall.SIGKILL}
     stdout, err := cmd.StdoutPipe()
     cmd.Stderr = cmd.Stdout
     if err != nil {

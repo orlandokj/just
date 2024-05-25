@@ -5,15 +5,12 @@ import (
 	"errors"
 	"log"
 	"sort"
-
-	"github.com/orlandokj/just/config"
-	"github.com/orlandokj/just/server"
 )
 
 type Application struct {
     Name string `json:"name"`
-    Config config.Config `json:"config"`
-    process server.ServerProcess
+    Config ApplicationConfig `json:"config"`
+    process RunningProcess
     Status string
     logs list.List
     logChan chan string
@@ -42,7 +39,7 @@ func (a *Application) run() error {
     }
 
 
-    server, err := server.CreateServer(a.Config, func(log string) {
+    applicationHandler, err := CreateApplication(a.Config, func(log string) {
         a.logs.PushBack(log)
         if a.logChan != nil {
             a.logChan <- log
@@ -53,7 +50,7 @@ func (a *Application) run() error {
     }
 
     a.Status = "Running"
-    process, err := server.Run()
+    process, err := applicationHandler.Run()
     if err != nil {
         a.Status = "Failed to run"
         return err
@@ -80,7 +77,7 @@ func (a *Application) stop() error {
     return nil
 }
 
-func NewApplication(config config.Config) error {
+func NewApplication(config ApplicationConfig) error {
     if config.Name == "" {
         return errors.New("Name is required")
     }
@@ -99,7 +96,7 @@ func NewApplication(config config.Config) error {
     return nil
 }
 
-func ModifyApplication(config config.Config) error {
+func ModifyApplication(config ApplicationConfig) error {
     app, ok := applications[config.Name]
     if !ok {
         return errors.New("Application not found")

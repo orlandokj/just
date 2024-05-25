@@ -1,7 +1,6 @@
 package templates
 
 import "github.com/orlandokj/just/application"
-import "github.com/orlandokj/just/config"
 
 script onSelectType() {
     const select = document.getElementById('select-app-type');
@@ -17,7 +16,7 @@ script onSelectType() {
     });
 }
 
-templ StaticConfig(config config.Config) {
+templ StaticConfig(config application.ApplicationConfig) {
 	<div id="static-config" class="config hidden grid gap-2">
 		<div class="grid gap-2">
 			<label
@@ -55,7 +54,7 @@ templ StaticConfig(config config.Config) {
 	</div>
 }
 
-templ JavaConfig(config config.Config) {
+templ JavaConfig(config application.ApplicationConfig) {
 	<div id="java-config" class="config hidden grid gap-2">
 		<div class="grid gap-2">
 			<label
