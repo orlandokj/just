@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"os"
 	"os/exec"
-	"syscall"
 )
 
 type RunningCommand struct {
@@ -35,7 +34,7 @@ func (rc RunningCommand) CPUUsage() int {
 }
 
 func RunCmd(cmd *exec.Cmd, logFunc LogFunc) (RunningProcess, error) {
-    cmd.SysProcAttr = &syscall.SysProcAttr{Pdeathsig: syscall.SIGKILL}
+    beforeExecuteCommand(cmd)
     stdout, err := cmd.StdoutPipe()
     cmd.Stderr = cmd.Stdout
     if err != nil {
