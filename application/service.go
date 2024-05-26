@@ -1,10 +1,11 @@
 package application
 
 import (
-	"container/list"
 	"errors"
 	"log"
 	"sort"
+
+    "github.com/orlandokj/just/ring_list"
 )
 
 type Application struct {
@@ -12,7 +13,7 @@ type Application struct {
     Config ApplicationConfig `json:"config"`
     process RunningProcess
     Status string
-    logs list.List
+    logs *ringlist.RingList
     logChan chan string
 }
 
@@ -39,8 +40,9 @@ func (a *Application) run() error {
     }
 
 
+    a.logs = ringlist.NewRingList(10000)
     applicationHandler, err := CreateApplication(a.Config, func(log string) {
-        a.logs.PushBack(log)
+        a.logs.Add(log)
         if a.logChan != nil {
             a.logChan <- log
         }
@@ -72,7 +74,7 @@ func (a *Application) stop() error {
     }
 
     a.Status = "Stopped"
-    a.logs.Init()
+    a.logs.Clear()
 
     return nil
 }
@@ -165,9 +167,9 @@ func WatchLogs(name string, logChan chan string) error {
     }
 
     go func() {
-        for e := app.logs.Front(); e != nil; e = e.Next() {
-            logChan <- e.Value.(string)
-        }
+        app.logs.Do(func(log interface{}) {
+            logChan <- log.(string)
+        })
     }()
     app.logChan = logChan
 

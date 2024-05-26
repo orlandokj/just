@@ -29,11 +29,11 @@ templ ApplicationLogs(appName string) {
                 }
             </script>
 		</head>
-		<body class="bg-slate-950 p-2">
+		<body class="bg-slate-950 p-2" onload="toggleAutoScroll(document.getElementById('auto-scroll-button'))">
             <div class="text-slate-400" hx-ext="sse" id="logs" sse-connect={fmt.Sprintf("/application/%s/logs", appName)} sse-swap="message" hx-swap="beforeend">
             </div>
             <div class="fixed bottom-2 right-2">
-                <button id="auto-scroll-button" onclick="toggleAutoScroll(this)" class="bg-slate-800 text-slate-400 px-2 py-1 rounded">Enable auto scroll</button>
+                <button id="auto-scroll-button" onclick="toggleAutoScroll(this)" class="bg-slate-800 text-slate-400 px-2 py-1 rounded">Disable auto scroll</button>
             </div>
             <div id="scroll-to-bottom"></div>
         </body>

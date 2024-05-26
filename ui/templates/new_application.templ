@@ -2,7 +2,7 @@ package templates
 
 import "github.com/orlandokj/just/application"
 
-script onSelectType() {
+script onSelectType(configType string) {
     const select = document.getElementById('select-app-type');
 
     select.addEventListener('change', (event) => {
@@ -14,6 +14,9 @@ script onSelectType() {
             document.getElementById(selectedOption + '-config').classList.remove('hidden');
         }
     });
+
+    select.value = configType;
+    select.dispatchEvent(new Event('change'));
 }
 
 templ StaticConfig(config application.ApplicationConfig) {
@@ -110,7 +113,7 @@ templ ApplicationForm(app application.Application) {
 // https://v0.dev/t/D6AG3V5Ofw1
 -->
 	<div class="p-4">
-		@onSelectType()
+		@onSelectType(app.Config.Type)
 		<div class="mx-auto max-w-lg space-y-6 p-4 md:p-0">
 			<form
 				style="width: 600px"
@@ -159,9 +162,8 @@ templ ApplicationForm(app application.Application) {
 							style="background-color: transparent; appearance: none;"
 							name="type"
 							id="select-app-type"
-                            value={app.Config.Type}
 						>
-							<option value="">
+							<option value="" hidden>
 								Select application type
 							</option>
 							<option value="java">Java</option>
